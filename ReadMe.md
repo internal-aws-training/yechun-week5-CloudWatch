@@ -27,7 +27,7 @@ CloudWatch Events是什么？
 - Amazon CloudWatch Events delivers a near real-time stream of system events that describe changes in Amazon Web Services (AWS) resources. Using simple rules that you can quickly set up, you can match events and route them to one or more target functions or streams.
 
 可以应用在哪些场景？
-- [应用场景](!https://docs.aws.amazon.com/zh_cn/AmazonCloudWatch/latest/events/EventTypes.html)
+- [应用场景](https://docs.aws.amazon.com/zh_cn/AmazonCloudWatch/latest/events/EventTypes.html)
 
 相关概念理解：metrics，periods，namespace，count，dimensions，statistics。
 - namespace: A namespace is a container for CloudWatch metrics. 
