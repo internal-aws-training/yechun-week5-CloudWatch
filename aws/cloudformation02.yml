@@ -1,0 +1,99 @@
+Description: Cloudformation template to create a Cloudwatch rule by syc
+Resources:
+  SYCCloudwatchRuleInvokeLambdaEveryMinute:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: Invoke lambda log
+      Name: syc-trigger-lambda-by-minute-log
+      State: ENABLED
+      ScheduleExpression: rate(1 minute)
+      Targets:
+        - Arn: !GetAtt SYCLambdaFunction.Arn
+          Id: lambda-function-log
+
+  SYCLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: SYC-cloudwatchLog-function
+      Handler: cloudWatch01.handler
+      Code:
+        S3Bucket: syc-lambda-functions
+        S3Key: cloudWatch01.zip
+      Runtime: nodejs12.x
+      Role: arn:aws:iam::494526681395:role/for-aws-training
+
+  SYCLambdaInvokePermissions:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt SYCLambdaFunction.Arn
+      Principal: events.amazonaws.com
+  
+  # SYCCloudWatchGroupLog:
+  #   Type: AWS::Logs::LogGroup
+  #   Properties: 
+  #     LogGroupName: SYC-cloudwatch-groupLog
+  #     RetentionInDays: 30
+  
+  CloudWatchMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties: 
+      FilterPattern: Now is an even minute.
+      LogGroupName: /aws/lambda/SYC-cloudwatchLog-function
+      MetricTransformations: 
+        - MetricName: SYC_metricName
+          MetricNamespace: SYC_namespace
+          MetricValue: 1
+
+  SYCCloudWatchAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      # ActionsEnabled: Boolean
+      # AlarmActions:
+      #   - String
+      AlarmDescription: test for SYC cloud watch alarm
+      AlarmName: SYC-cloudwatchLog
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      # DatapointsToAlarm: Integer
+      # Dimensions:
+      #   - Dimension
+      # EvaluateLowSampleCountPercentile: String
+      EvaluationPeriods: 1
+      # ExtendedStatistic: String
+      # InsufficientDataActions:
+      #   - String
+      MetricName: SYC_metricName
+      # Metrics:
+      #   - SYC_metricName
+      Namespace: SYC_namespace
+      # OKActions:
+      #   - String
+      Period: 300
+      Statistic: Sum
+      Threshold: 5
+      # ThresholdMetricId: String
+      TreatMissingData: breaching
+      Unit: Seconds
+
+  SYCCloudWatchSns:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: SYC-cloudwatchLog-sns
+      # KmsMasterKeyId: String
+      # Subscription:
+      #   - Subscription
+      # Tags:
+      #   - Tag
+      TopicName: SYC-cloudwatchLog-sns
+
+  SYCCloudWatchSnsSub:
+    Type: AWS::SNS::Subscription
+    Properties: 
+      # DeliveryPolicy: Json
+      Endpoint: yechun.song@thoughtworks.com
+      # FilterPolicy: Json
+      Protocol: email
+      # RawMessageDelivery: Boolean
+      # RedrivePolicy: Json
+      # Region: String
+      TopicArn: !Ref SYCCloudWatchSns

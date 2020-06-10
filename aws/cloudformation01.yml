@@ -1,0 +1,82 @@
+Description: Cloudformation template to create a Cloudwatch rule by syc
+Resources:
+  CloudwatchRuleInvokeLambdaEveryMinute:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: Invoke lambda
+      Name: syc-trigger-lambda-by-minute
+      State: ENABLED
+      ScheduleExpression: rate(1 minute)
+      Targets:
+        - Arn: !GetAtt LambdaFunction.Arn
+          Id: lambda-function
+
+  LambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: cloudWatch01.handler
+      Code:
+        S3Bucket: syc-lambda-functions
+        S3Key: cloudWatch01.zip
+      Runtime: nodejs12.x
+      Role: arn:aws:iam::494526681395:role/for-aws-training
+
+  LambdaInvokePermissions:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt LambdaFunction.Arn
+      Principal: events.amazonaws.com
+
+  CloudWatchAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      # ActionsEnabled: Boolean
+      # AlarmActions:
+      #   - String
+      AlarmDescription: test for SYC cloud watch alarm
+      AlarmName: SYC-cloudwatch-alarm
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      # DatapointsToAlarm: Integer
+      # Dimensions:
+      #   - Dimension
+      # EvaluateLowSampleCountPercentile: String
+      EvaluationPeriods: 1
+      # ExtendedStatistic: String
+      # InsufficientDataActions:
+      #   - String
+      MetricName: SYC_metricName
+      # Metrics:
+      #   - SYC_metricName
+      Namespace: SYC_namespace
+      # OKActions:
+      #   - String
+      Period: 300
+      Statistic: Sum
+      Threshold: 5
+      # ThresholdMetricId: String
+      TreatMissingData: breaching
+      Unit: Seconds
+
+  CloudWatchSns:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: SYC-cloudwatch-sns
+      # KmsMasterKeyId: String
+      # Subscription:
+      #   - Subscription
+      # Tags:
+      #   - Tag
+      TopicName: SYC-cloudwatch-alarm-sns
+
+  CloudWatchSnsSub:
+    Type: AWS::SNS::Subscription
+    Properties: 
+      # DeliveryPolicy: Json
+      Endpoint: yechun.song@thoughtworks.com
+      # FilterPolicy: Json
+      Protocol: email
+      # RawMessageDelivery: Boolean
+      # RedrivePolicy: Json
+      # Region: String
+      TopicArn: !Ref CloudWatchSns
